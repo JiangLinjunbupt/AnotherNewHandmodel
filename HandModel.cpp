@@ -48,7 +48,7 @@ HandModel::HandModel()
 	NumofJoints = 21;
 	Joints = new Joint[21];
 	//wrist
-	{
+	 {
 		Joints[0].joint_name = "Wrist";
 		Joints[0].joint_index = 0;
 		Joints[0].GlobalInitPosition << 0.0f, 0.0f, 0.0f, 1.0f;
@@ -77,7 +77,7 @@ HandModel::HandModel()
 			Joints[1].params_length = 2;
 			Joints[1].params_index = new int[2]; Joints[1].params_type = new int[2];
 			Joints[1].params_index[0] = 6; Joints[1].params_type[0] = dof_type(y_axis_rotate);
-			Joints[1].params_index[1] = 7; Joints[1].params_type[0] = dof_type(z_axis_rotate);
+			Joints[1].params_index[1] = 7; Joints[1].params_type[1] = dof_type(z_axis_rotate);
 		}
 
 		{
@@ -599,10 +599,15 @@ void HandModel::Updata_Vertics()
 	Eigen::MatrixXf t = Eigen::MatrixXf::Zero(4, NumofVertices);
 	Eigen::MatrixXf x = Eigen::MatrixXf::Ones(4, NumofVertices);
 	x.block(0, 0, 3, NumofVertices) = Vectices.block(0, 0, NumofVertices, 3).transpose();
+
+	Eigen::MatrixXf y;
+	Eigen::MatrixXf y0;
+	Eigen::MatrixXf z;
+
 	for (int i = 0; i < NumofJoints; ++i) {
-		Eigen::MatrixXf y = Weights.block(0, i, NumofVertices, 1);// 在所有顶点 对于 该关节点的weight
-		Eigen::MatrixXf y0 = y.replicate(1, 4);    //分别是行重复1遍，列重复4遍，结果为（num_vertices_，4）这么大小的矩阵
-		Eigen::MatrixXf z = Joints[i].global * Joints[i].local.inverse() * x;
+		y = Weights.block(0, i, NumofVertices, 1);// 在所有顶点 对于 该关节点的weight
+		y0 = y.replicate(1, 4);    //分别是行重复1遍，列重复4遍，结果为（num_vertices_，4）这么大小的矩阵
+		z = Joints[i].global * Joints[i].local.inverse() * x;
 		t = t + z.cwiseProduct(y0.transpose());
 	}
 	vertices_update_ = t.transpose();
@@ -690,13 +695,12 @@ void HandModel::Compute_normal_And_visibel_vertices()
 }
 
 
-
 //=================Jacobain    related    function==============================
 void HandModel::Updata_joints_Jacobian()
 {
 	Joints_jacobian.setZero();
 
-	for (int i = 0; i < NumofJoints; ++i)
+	for (int i = 1; i < NumofJoints; ++i)
 	{
 		Joints_jacobian.block(i * 3, 0, 3, NumberofParams) = Compute_one_Joint_Jacobian(i);
 	}
@@ -710,17 +714,25 @@ Eigen::MatrixXf HandModel::Compute_one_Joint_Jacobian(int index)
 	int current_indx = index;
 	Eigen::Vector3f current_joint_position(Joints[index].CorrespondingPosition(0), Joints[index].CorrespondingPosition(1), Joints[index].CorrespondingPosition(2));
 	
+	//计算时候会用到的变量
+	Eigen::Vector3f axis_base_position;
+	Eigen::Vector3f x_axis_position;
+	Eigen::Vector3f y_axis_position;
+	Eigen::Vector3f z_axis_position;
+
+	Eigen::Vector3f w_x, w_y, w_z;
+	Eigen::Vector3f S;
+	Eigen::Vector3f result;
+
 	while (current_indx >= 0)
 	{
-		Eigen::Vector3f axis_base_position(Joints[current_indx].CorrespondingPosition(0), Joints[current_indx].CorrespondingPosition(1), Joints[current_indx].CorrespondingPosition(2));
+		axis_base_position<<Joints[current_indx].CorrespondingPosition(0), Joints[current_indx].CorrespondingPosition(1), Joints[current_indx].CorrespondingPosition(2);
 
-		Eigen::Vector3f x_axis_position(Joints[current_indx].CorrespondingAxis[0](0), Joints[current_indx].CorrespondingAxis[0](1), Joints[current_indx].CorrespondingAxis[0](2));
-		Eigen::Vector3f y_axis_position(Joints[current_indx].CorrespondingAxis[1](0), Joints[current_indx].CorrespondingAxis[1](1), Joints[current_indx].CorrespondingAxis[1](2));
-		Eigen::Vector3f z_axis_position(Joints[current_indx].CorrespondingAxis[2](0), Joints[current_indx].CorrespondingAxis[2](1), Joints[current_indx].CorrespondingAxis[2](2));
+		x_axis_position<<Joints[current_indx].CorrespondingAxis[0](0), Joints[current_indx].CorrespondingAxis[0](1), Joints[current_indx].CorrespondingAxis[0](2);
+		y_axis_position<<Joints[current_indx].CorrespondingAxis[1](0), Joints[current_indx].CorrespondingAxis[1](1), Joints[current_indx].CorrespondingAxis[1](2);
+		z_axis_position<<Joints[current_indx].CorrespondingAxis[2](0), Joints[current_indx].CorrespondingAxis[2](1), Joints[current_indx].CorrespondingAxis[2](2);
 
-		Eigen::Vector3f w_x, w_y, w_z;
-		Eigen::Vector3f S;
-
+		
 		w_x << (x_axis_position - axis_base_position);
 		w_y << (y_axis_position - axis_base_position);
 		w_z << (z_axis_position - axis_base_position);
@@ -734,7 +746,6 @@ Eigen::MatrixXf HandModel::Compute_one_Joint_Jacobian(int index)
 		int params_len = Joints[current_indx].params_length;
 		for (int idx = 0; idx < params_len; idx++)
 		{
-			Eigen::Vector3f result;
 			int params_idx = Joints[current_indx].params_index[idx];
 
 			switch (Joints[current_indx].params_type[idx])

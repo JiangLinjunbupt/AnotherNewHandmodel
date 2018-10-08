@@ -1,0 +1,69 @@
+﻿  HandModel.cpp
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(385): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(386): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(388): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(389): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(391): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(392): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(652): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,-1,0,-1,-1>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(653): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,-1,0,-1,-1>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(654): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,-1,0,-1,-1>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(664): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(665): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(666): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(668): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(669): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(670): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(672): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(673): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+o:\anothernewhandmodel\anothernewhandmodel\handmodel.cpp(674): warning C4244: “参数”: 从“float”转换到“Eigen::EigenBase<Derived>::Index”，可能丢失数据
+          with
+          [
+              Derived=Eigen::Matrix<float,-1,3,0,-1,3>
+          ]
+  AnotherNewHandmodel.vcxproj -> O:\AnotherNewHandmodel\x64\Debug\AnotherNewHandmodel.exe
+  AnotherNewHandmodel.vcxproj -> O:\AnotherNewHandmodel\x64\Debug\AnotherNewHandmodel.pdb (Full PDB)

@@ -295,6 +295,7 @@ void initGL(int width, int height) {
 int main(int argc, char** argv)
 {
 
+
 #pragma region SharedMemery
 	hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,    // use paging file
