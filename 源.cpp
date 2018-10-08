@@ -32,6 +32,7 @@ TCHAR szName[] = TEXT("Global\\MyFileMappingObject");    //Ö¸ÏòÍ¬Ò»¿é¹²ÏíÄÚ´æµÄÃ
 float *GetSharedMemeryPtr;
 float *GetGloveData = new float[26];
 
+bool move_to_target = false;
 
 #pragma region OpenGL
 void light() {
@@ -62,6 +63,9 @@ void keyboardDown(unsigned char key, int x, int y) {
 		break;
 	case 's':
 		handmodel->save_target_joints();
+		break;
+	case 'b':
+		move_to_target = !move_to_target;
 		break;
 	}
 }
@@ -293,20 +297,25 @@ void idle() {
 
 	Begin = clock();//¿ªÊ¼¼ÆÊ±
 
-	//for (int i = 0; i < 26; ++i)
-	//{
-	//	GetGloveData[i] = GetSharedMemeryPtr[i];
-	//}
+	if (!move_to_target)
+	{
+		for (int i = 0; i < 26; ++i)
+		{
+			GetGloveData[i] = GetSharedMemeryPtr[i];
+		}
 
 
-	//GetGloveData[0] = -50;
-	//GetGloveData[1] = -40;
-	//GetGloveData[2] = -30;
+		//GetGloveData[0] = -50;
+		//GetGloveData[1] = -40;
+		//GetGloveData[2] = -30;
 
 
-	//handmodel->Updata(GetGloveData);
-
-	handmodel->MoveToJointTarget();
+		handmodel->Updata(GetGloveData);
+	}
+	else
+	{
+		handmodel->MoveToJointTarget();
+	}
 
 	End = clock();//½áÊø¼ÆÊ±
 	duration = double(End - Begin) / CLK_TCK;//duration¾ÍÊÇÔËĞĞº¯ÊıËù´òµÄ

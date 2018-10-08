@@ -375,8 +375,6 @@ HandModel::HandModel()
 	compute_local_coordinate();
 	compute_parent_child_transform();
 	Updata(Params);
-
-	load_target_joints();
 }
 
 void HandModel::set_one_rotation(const Pose& pose, int index)
@@ -606,6 +604,7 @@ void HandModel::Updata_axis()
 		{
 			if (i == 0)
 			{
+				//y*x*z;         ==> y轴不变，x轴左乘y轴旋转，z轴完全旋转
 				Pose pose(Params[3], Params[4], Params[5]);
 				Eigen::MatrixXf x = Eigen::MatrixXf::Identity(4, 4);
 				Eigen::MatrixXf y = Eigen::MatrixXf::Identity(4, 4);
@@ -636,10 +635,22 @@ void HandModel::Updata_axis()
 			}
 			else
 			{
-				int parent_joint_index = Joints[i].parent_joint_index;
+				if (i == 1)
+				{
+					//z*x*y;   ==>z轴不变，x轴要左乘z的旋转，但是x轴用不到，因此不更新，y轴则遵循完全旋转
+					int parent_joint_index = Joints[i].parent_joint_index;
 
-				Joints[i].CorrespondingAxis[1] << Joints[i].global*Joints[i].dof_axis[1] + GlobalPosition;
-				Joints[i].CorrespondingAxis[2] << Joints[parent_joint_index].global*Joints[i].trans*Joints[i].dof_axis[2] + GlobalPosition;
+					Joints[i].CorrespondingAxis[1] << Joints[i].global*Joints[i].dof_axis[1] + GlobalPosition;
+					Joints[i].CorrespondingAxis[2] << Joints[parent_joint_index].global*Joints[i].trans*Joints[i].dof_axis[2] + GlobalPosition;
+				}
+				else
+				{
+					//x*y*z;    ==>x轴不变，但是x轴用不到，因此不更新，y轴左乘x轴旋转，但是x轴不旋转，因此绕x旋转是单位矩阵，因此y轴也不变，z轴完全旋转
+					int parent_joint_index = Joints[i].parent_joint_index;
+
+					Joints[i].CorrespondingAxis[1] << Joints[parent_joint_index].global*Joints[i].trans*Joints[i].dof_axis[1] + GlobalPosition;
+					Joints[i].CorrespondingAxis[2] << Joints[i].global*Joints[i].dof_axis[2] + GlobalPosition;
+				}
 			}
 		}
 	}
@@ -672,6 +683,7 @@ void HandModel::Updata_Vertics()
 
 void HandModel::Updata(float* params)
 {
+	load_target_joints();
 
 	compute_rotation_matrix(params);
 	compute_global_matrix();
