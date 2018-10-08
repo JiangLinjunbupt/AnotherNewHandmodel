@@ -4,7 +4,7 @@
 #include<iostream>
 #include<vector>
 #include<ctime>
-#define PI 3.1415926
+#define PI 3.1415926f
 
 enum dof_type
 {
@@ -67,7 +67,7 @@ class HandModel
 public:
 	Joint* Joints;
 
-	Matrix_Nx3 FaceIndex;
+	Eigen::MatrixXi FaceIndex;
 	Matrix_Nx3 Vectices;
 	Eigen::MatrixXf vertices_update_;
 	Matrix_Nx3 Vertices_normal;    //和Vectices一起在加载的时候初始化为0矩阵
@@ -119,7 +119,8 @@ private:
 	void compute_global_matrix();
 	void compute_rotation_matrix(float* params);
 	void set_one_rotation(const Pose& p, int index);
-	void Updata_Joints_Axis();
+	void Updata_Joints();
+	void Updata_axis();
 	void Updata_Vertics();
 	void Compute_normal_And_visibel_vertices();
 

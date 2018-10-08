@@ -4,7 +4,7 @@ void HandModel::load_faces(char* filename)
 	std::ifstream f;
 	f.open(filename, std::ios::in);
 	f >> NumofFaces;
-	FaceIndex = Eigen::MatrixXf::Zero(NumofFaces, 3);
+	FaceIndex = Eigen::MatrixXi::Zero(NumofFaces, 3);
 	for (int i = 0; i < NumofFaces; ++i) {
 		f >> FaceIndex(i, 0) >> FaceIndex(i, 1) >> FaceIndex(i, 2);
 	}
@@ -411,11 +411,11 @@ void HandModel::set_one_rotation(const Pose& pose, int index)
 	{
 		if (index == 1)
 		{
-			Joints[index].rotation = z*x*y;
+			Joints[index].rotation = z*x*y;      
 		}
 		else
 		{
-			Joints[index].rotation = x*y*z;
+			Joints[index].rotation = x*y*z;        
 		}
 	}
 
@@ -569,7 +569,7 @@ void HandModel::compute_global_matrix()
 	Scaling(2, 2) = Hand_scale(2);
 	Scaling(3, 3) = 1;
 
-	Joints[0].global = Joints[0].local*Joints[0].rotation*Scaling;
+	Joints[0].global = Joints[0].local*Scaling*Joints[0].rotation;
 
 	for (int i = 0; i < NumofJoints; ++i)
 	{
@@ -581,20 +581,67 @@ void HandModel::compute_global_matrix()
 	}
 }
 
-void HandModel::Updata_Joints_Axis()
+void HandModel::Updata_Joints()
 {
 	//updata joints
 	for (int i = 0; i < NumofJoints; ++i)
 	{
 		Joints[i].CorrespondingPosition << Joints[i].global*Joints[i].local.inverse()*Joints[i].GlobalInitPosition + GlobalPosition;
 	}
+}
 
-	//updata axis
+void HandModel::Updata_axis()
+{
+	//updata axis  这里的axis指的是绕的哪个轴旋转的axis的更新，对于不饶旋转的轴，可以不更新，比如: joint[1、5、9、13、17]这五根手指的low 
+	//
 	for (int i = 0; i < NumofJoints; ++i)
 	{
-		Joints[i].CorrespondingAxis[0] << Joints[i].global*Joints[i].dof_axis[0] + GlobalPosition;
-		Joints[i].CorrespondingAxis[1] << Joints[i].global*Joints[i].dof_axis[1] + GlobalPosition;
-		Joints[i].CorrespondingAxis[2] << Joints[i].global*Joints[i].dof_axis[2] + GlobalPosition;
+		if (i != 0 && i != 1 && i != 5 && i != 9 && i != 13 && i != 17)
+		{
+			Joints[i].CorrespondingAxis[0] << Joints[i].global*Joints[i].dof_axis[0] + GlobalPosition;
+			Joints[i].CorrespondingAxis[1] << Joints[i].global*Joints[i].dof_axis[1] + GlobalPosition;
+			Joints[i].CorrespondingAxis[2] << Joints[i].global*Joints[i].dof_axis[2] + GlobalPosition;
+		}
+		else
+		{
+			if (i == 0)
+			{
+				Pose pose(Params[3], Params[4], Params[5]);
+				Eigen::MatrixXf x = Eigen::MatrixXf::Identity(4, 4);
+				Eigen::MatrixXf y = Eigen::MatrixXf::Identity(4, 4);
+				Eigen::MatrixXf z = Eigen::MatrixXf::Identity(4, 4);
+
+				float cx = cos(pose.x / 180 * PI);
+				float sx = sin(pose.x / 180 * PI);
+
+				float cy = cos(pose.y / 180 * PI);
+				float sy = sin(pose.y / 180 * PI);
+
+				float cz = cos(pose.z / 180 * PI);
+				float sz = sin(pose.z / 180 * PI);
+
+				x(1, 1) = cx; x(2, 2) = cx;
+				x(1, 2) = -sx; x(2, 1) = sx;
+
+				y(0, 0) = cy; y(0, 2) = sy;
+				y(2, 0) = -sy; y(2, 2) = cy;
+
+				z(0, 0) = cz; z(1, 1) = cz;
+				z(0, 1) = -sz; z(1, 0) = sz;
+
+
+				Joints[i].CorrespondingAxis[0] << Joints[i].local*y*Joints[i].dof_axis[0] + GlobalPosition;
+				Joints[i].CorrespondingAxis[1] << Joints[i].local*Joints[i].dof_axis[1] + GlobalPosition;
+				Joints[i].CorrespondingAxis[2] << Joints[i].local*y*x*Joints[i].dof_axis[2] + GlobalPosition;
+			}
+			else
+			{
+				int parent_joint_index = Joints[i].parent_joint_index;
+
+				Joints[i].CorrespondingAxis[1] << Joints[i].global*Joints[i].dof_axis[1] + GlobalPosition;
+				Joints[i].CorrespondingAxis[2] << Joints[parent_joint_index].global*Joints[i].trans*Joints[i].dof_axis[2] + GlobalPosition;
+			}
+		}
 	}
 }
 
@@ -628,7 +675,8 @@ void HandModel::Updata(float* params)
 
 	compute_rotation_matrix(params);
 	compute_global_matrix();
-	Updata_Joints_Axis();
+	Updata_Joints();
+	Updata_axis();
 
 	Updata_Vertics();        //经过测试最耗时 ： 共需要8ms左右
 

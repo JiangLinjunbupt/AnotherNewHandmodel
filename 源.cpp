@@ -102,7 +102,7 @@ void draw_mesh()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	{
-		glColor3f(0.4, 0.8, 0.3);
+		glColor3f(0.4f, 0.8f, 0.3f);
 		glBegin(GL_TRIANGLES);
 		for (int i = 0; i < handmodel->NumofFaces; ++i)
 		{
