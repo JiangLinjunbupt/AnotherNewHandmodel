@@ -94,12 +94,21 @@ public:
 	HandModel();
 	~HandModel() { delete ParamsLowerBound; delete ParamsUpperBound; delete Params; delete Joints; }
 	void Updata(float *Params);
+	bool Solved;
 
-
+	void save_target_joints();
+	Matrix_Nx3 Target_joints;
+	void MoveToJointTarget();
 private:
 	Eigen::MatrixXf Joints_jacobian;
 	Eigen::MatrixXf Compute_one_Joint_Jacobian(int index);
 	void Updata_joints_Jacobian();
+
+	void load_target_joints();
+
+
+
+
 private:
 	void load_faces(char* file);
 	void load_vertices(char* file);

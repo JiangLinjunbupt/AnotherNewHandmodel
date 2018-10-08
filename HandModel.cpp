@@ -368,11 +368,15 @@ HandModel::HandModel()
 
 	//Jacobain related 
 	Joints_jacobian = Eigen::MatrixXf::Zero(NumofJoints * 3, NumberofParams);
+	Solved = false;
+
+
 
 	compute_local_coordinate();
 	compute_parent_child_transform();
 	Updata(Params);
 
+	load_target_joints();
 }
 
 void HandModel::set_one_rotation(const Pose& pose, int index)
@@ -700,7 +704,7 @@ void HandModel::Updata_joints_Jacobian()
 {
 	Joints_jacobian.setZero();
 
-	for (int i = 1; i < NumofJoints; ++i)
+	for (int i = 0; i < NumofJoints; ++i)
 	{
 		Joints_jacobian.block(i * 3, 0, 3, NumberofParams) = Compute_one_Joint_Jacobian(i);
 	}
@@ -752,44 +756,44 @@ Eigen::MatrixXf HandModel::Compute_one_Joint_Jacobian(int index)
 			{
 			case dof_type(x_axis_rotate): {
 				result << omiga*w_x.cross(S);
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			case dof_type(y_axis_rotate): {
 				result << omiga*w_y.cross(S);
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			case dof_type(z_axis_rotate): {
 				result << omiga*w_z.cross(S);
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			case dof_type(x_axis_trans): {
 				result << 1, 0, 0;
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			case dof_type(y_axis_trans): {
 				result << 0, 1, 0;
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			case dof_type(z_axis_trans): {
 				result << 0, 0, 1;
-				Joints_jacobian(0, params_idx) += result(0);
-				Joints_jacobian(1, params_idx) += result(1);
-				Joints_jacobian(2, params_idx) += result(2);
+				Jacobain_(0, params_idx) += result(0);
+				Jacobain_(1, params_idx) += result(1);
+				Jacobain_(2, params_idx) += result(2);
 				break;
 			}
 			}
@@ -800,4 +804,76 @@ Eigen::MatrixXf HandModel::Compute_one_Joint_Jacobian(int index)
 	}
 
 	return Jacobain_;
+}
+
+void HandModel::MoveToJointTarget()
+{
+	Eigen::VectorXf e = Eigen::VectorXf::Zero(3 * NumofJoints, 1);
+	for (int i = 0; i < NumofJoints; i++)
+	{
+		e(i * 3 + 0) = -Joint_matrix(i, 0) + Target_joints(i, 0);
+		e(i * 3 + 1) = -Joint_matrix(i, 1) + Target_joints(i, 1);
+		e(i * 3 + 2) = -Joint_matrix(i, 2) + Target_joints(i, 2);
+	}
+
+
+	Updata_joints_Jacobian();
+	Eigen::MatrixXf J = Joints_jacobian;
+	Eigen::MatrixXf Jt = Joints_jacobian.transpose();
+
+	Eigen::Matrix<float, 26, 26> D = Eigen::Matrix<float, 26, 26>::Identity(26, 26);
+
+	int omiga = 20;
+
+	Eigen::VectorXf dAngles = Eigen::VectorXf::Zero(NumberofParams, 1);
+
+	MatrixXf JtJ = Jt*J + omiga*D;
+	VectorXf JTe = Jt*e;
+
+	dAngles = JtJ.colPivHouseholderQr().solve(JTe);
+
+	for (int i = 0; i < NumberofParams; i++)
+		Params[i] += dAngles(i);
+
+	Updata(Params);
+
+	Eigen::VectorXf e_updata = Eigen::VectorXf::Zero(3 * NumofJoints, 1);
+	for (int i = 0; i < NumofJoints; i++)
+	{
+		e_updata(i * 3 + 0) = -Joint_matrix(i, 0) + Target_joints(i, 0);
+		e_updata(i * 3 + 1) = -Joint_matrix(i, 1) + Target_joints(i, 1);
+		e_updata(i * 3 + 2) = -Joint_matrix(i, 2) + Target_joints(i, 2);
+	}
+
+	if (e_updata.norm() < 1)
+	{
+		Solved = true;
+	}
+	else
+	{
+		Solved = false;
+	}
+}
+
+void HandModel::save_target_joints()
+{
+	std::ofstream f;
+	f.open(".\\test\\target_joints.txt", std::ios::out);
+	for (int i = 0; i < NumofJoints; i++) {
+		f << Joints[i].CorrespondingPosition(0) << "  " << Joints[i].CorrespondingPosition(1) << "  " << Joints[i].CorrespondingPosition(2) << endl;
+	}
+	f.close();
+	printf("Save Target Joints succeed!!!\n");
+}
+
+void HandModel::load_target_joints()
+{
+	std::ifstream f;
+	f.open(".\\test\\target_joints.txt", std::ios::in);
+	Target_joints = Eigen::MatrixXf::Zero(NumofJoints, 3);
+	for (int i = 0; i < NumofJoints; i++) {
+		f >> Target_joints(i, 0) >> Target_joints(i, 1) >> Target_joints(i, 2);
+	}
+	f.close();
+	printf("Load Target Joints succeed!!!\n");
 }

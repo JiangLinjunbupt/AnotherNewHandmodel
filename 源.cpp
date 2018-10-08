@@ -60,6 +60,9 @@ void keyboardDown(unsigned char key, int x, int y) {
 	case 'm':
 		show_mesh = !show_mesh;
 		break;
+	case 's':
+		handmodel->save_target_joints();
+		break;
 	}
 }
 
@@ -213,6 +216,48 @@ void draw_joint_local_coordinate(int index)
 	glEnd();
 }
 
+void draw_ALL_joint_coordinate()
+{
+	for (int i = 0; i<21; ++i)  	draw_joint_local_coordinate(i);
+}
+
+void draw_Hand_visible_vertex()
+{
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
+	glPointSize(2);
+	glBegin(GL_POINTS);
+	glColor3d(1.0, 0.0, 0.0);
+	for (int i = 0; i < handmodel->Visible_vertices.size(); i++) {
+		glVertex3d(handmodel->Visible_vertices[i](0), handmodel->Visible_vertices[i](1), handmodel->Visible_vertices[i](2));
+	}
+	glEnd();
+}
+
+void draw_target_difference()
+{
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
+	for (int i = 0; i < handmodel->NumofJoints; ++i) {
+		//画点开始 
+		glColor3f(0.0, 1.0, 0.0);
+		glPushMatrix();
+		glTranslatef(handmodel->Target_joints(i,0), handmodel->Target_joints(i, 1), handmodel->Target_joints(i, 2));
+		glutSolidSphere(3, 31, 10);
+		glPopMatrix();
+		//画点结束，使用push和popmatrix是因为保证每个关节点的偏移都是相对于全局坐标中心点做的变换。
+
+		//画线开始  //不画wrist到arm的那条线
+
+		glLineWidth(5);
+		glColor3f(1.0, 1.0, 1.0);
+		glBegin(GL_LINES);
+		glVertex3f(handmodel->Joints[i].CorrespondingPosition(0), handmodel->Joints[i].CorrespondingPosition(1), handmodel->Joints[i].CorrespondingPosition(2));
+		glVertex3f(handmodel->Target_joints(i, 0), handmodel->Target_joints(i, 1), handmodel->Target_joints(i, 2));
+		glEnd();
+
+	}
+}
 void draw() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -233,16 +278,9 @@ void draw() {
 	//draw_vertex();
 	draw_skeleton();
 	draw_Coordinate();
-	for(int i = 0;i<21;++i)  	draw_joint_local_coordinate(i);
+	//draw_ALL_joint_coordinate();
 
-
-	//glPointSize(2);
-	//glBegin(GL_POINTS);
-	//glColor3d(1.0, 0.0, 0.0);
-	//for (int i = 0; i < handmodel->Visible_vertices.size(); i++) {
-	//	glVertex3d(handmodel->Visible_vertices[i](0), handmodel->Visible_vertices[i](1), handmodel->Visible_vertices[i](2));
-	//}
-	//glEnd();
+	draw_target_difference();
 
 
 
@@ -255,19 +293,20 @@ void idle() {
 
 	Begin = clock();//开始计时
 
-	for (int i = 0; i < 26; ++i)
-	{
-		GetGloveData[i] = GetSharedMemeryPtr[i];
-	}
+	//for (int i = 0; i < 26; ++i)
+	//{
+	//	GetGloveData[i] = GetSharedMemeryPtr[i];
+	//}
 
-	//GetGloveData[3] = -180;
-	//GetGloveData[4] = -0;
-	//GetGloveData[5] = -0;
-	//GetGloveData[6] = 20;
-	//GetGloveData[7] = 35;
 
-	handmodel->Updata(GetGloveData);
+	//GetGloveData[0] = -50;
+	//GetGloveData[1] = -40;
+	//GetGloveData[2] = -30;
 
+
+	//handmodel->Updata(GetGloveData);
+
+	handmodel->MoveToJointTarget();
 
 	End = clock();//结束计时
 	duration = double(End - Begin) / CLK_TCK;//duration就是运行函数所打的
