@@ -282,9 +282,9 @@ void draw() {
 	//draw_vertex();
 	draw_skeleton();
 	draw_Coordinate();
-	//draw_ALL_joint_coordinate();
+	draw_ALL_joint_coordinate();
 
-	draw_target_difference();
+	//draw_target_difference();
 
 
 
@@ -305,11 +305,6 @@ void idle() {
 		}
 
 
-		//GetGloveData[0] = -50;
-		//GetGloveData[1] = -40;
-		//GetGloveData[2] = -30;
-
-
 		handmodel->Updata(GetGloveData);
 	}
 	else
@@ -320,7 +315,7 @@ void idle() {
 	End = clock();//结束计时
 	duration = double(End - Begin) / CLK_TCK;//duration就是运行函数所打的
 
-	//std::cout << "time is : " << duration * 1000 << std::endl;
+	std::cout << "time is : " << duration * 1000 << std::endl;
 
 	glutPostRedisplay();
 }
@@ -343,7 +338,7 @@ void initGL(int width, int height) {
 int main(int argc, char** argv)
 {
 
-
+	//cout << omp_get_max_threads() << endl;
 #pragma region SharedMemery
 	hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,    // use paging file

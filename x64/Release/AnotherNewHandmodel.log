@@ -1,8 +1,9 @@
-﻿  HandModel.cpp
+﻿cl : 命令行 warning D9002: 忽略未知选项“/arch:SSE2”
+  HandModel.cpp
   正在生成代码
-  237 of 7403 functions ( 3.2%) were compiled, the rest were copied from previous compilation.
+  236 of 7453 functions ( 3.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    43 functions had inline decision re-evaluated but remain unchanged
+    53 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   AnotherNewHandmodel.vcxproj -> O:\AnotherNewHandmodel\x64\Release\AnotherNewHandmodel.exe
   AnotherNewHandmodel.vcxproj -> O:\AnotherNewHandmodel\x64\Release\AnotherNewHandmodel.pdb (Full PDB)

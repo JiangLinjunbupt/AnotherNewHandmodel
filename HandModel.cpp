@@ -5,6 +5,7 @@ void HandModel::load_faces(char* filename)
 	f.open(filename, std::ios::in);
 	f >> NumofFaces;
 	FaceIndex = Eigen::MatrixXi::Zero(NumofFaces, 3);
+	Face_normal.resize(NumofFaces);
 	for (int i = 0; i < NumofFaces; ++i) {
 		f >> FaceIndex(i, 0) >> FaceIndex(i, 1) >> FaceIndex(i, 2);
 	}
@@ -662,16 +663,17 @@ void HandModel::Updata_Vertics()
 	Eigen::MatrixXf x = Eigen::MatrixXf::Ones(4, NumofVertices);
 	x.block(0, 0, 3, NumofVertices) = Vectices.block(0, 0, NumofVertices, 3).transpose();
 
-	Eigen::MatrixXf y;
-	Eigen::MatrixXf y0;
-	Eigen::MatrixXf z;
-
-	for (int i = 0; i < NumofJoints; ++i) {
-		y = Weights.block(0, i, NumofVertices, 1);// 在所有顶点 对于 该关节点的weight
-		y0 = y.replicate(1, 4);    //分别是行重复1遍，列重复4遍，结果为（num_vertices_，4）这么大小的矩阵
-		z = Joints[i].global * Joints[i].local.inverse() * x;
-		t = t + z.cwiseProduct(y0.transpose());
+	{
+		for (int i = 0; i < NumofJoints; ++i) {
+			Eigen::MatrixXf y = Weights.block(0, i, NumofVertices, 1);// 在所有顶点 对于 该关节点的weight
+			Eigen::MatrixXf y0 = y.replicate(1, 4);    //分别是行重复1遍，列重复4遍，结果为（num_vertices_，4）这么大小的矩阵
+			Eigen::MatrixXf z = Joints[i].global * Joints[i].local.inverse() * x;
+			{
+				t = t + z.cwiseProduct(y0.transpose());
+			}
+		}
 	}
+
 	vertices_update_ = t.transpose();
 
 	for (int i = 0; i < vertices_update_.rows(); ++i) {
@@ -709,39 +711,45 @@ void HandModel::Compute_normal_And_visibel_vertices()
 	Visible_vertices.clear();
 	Visible_vertices_index.clear();
 	Face_normal.clear();
+
 	Vertices_normal.setZero();
-	Vector3f A, B, C, BA, BC;
-	for (int i = 0; i < NumofFaces; ++i)
+
 	{
-		//这里我假设，如果假设错了，那么叉乘时候，就BC*BA变成BA*BC
-		//            A
-		//          /  \
-		//         B — C
-		A << vertices_update_(FaceIndex(i, 0), 0), vertices_update_(FaceIndex(i, 0), 1), vertices_update_(FaceIndex(i, 0), 2);
-		B << vertices_update_(FaceIndex(i, 1), 0), vertices_update_(FaceIndex(i, 1), 1), vertices_update_(FaceIndex(i, 1), 2);
-		C << vertices_update_(FaceIndex(i, 2), 0), vertices_update_(FaceIndex(i, 2), 1), vertices_update_(FaceIndex(i, 2), 2);
+		for (int i = 0; i < NumofFaces; ++i)
+		{
+			Vector3f A, B, C, BA, BC;
+			//这里我假设，如果假设错了，那么叉乘时候，就BC*BA变成BA*BC
+			//            A
+			//          /  \
+			//         B — C
+			A << vertices_update_(FaceIndex(i, 0), 0), vertices_update_(FaceIndex(i, 0), 1), vertices_update_(FaceIndex(i, 0), 2);
+			B << vertices_update_(FaceIndex(i, 1), 0), vertices_update_(FaceIndex(i, 1), 1), vertices_update_(FaceIndex(i, 1), 2);
+			C << vertices_update_(FaceIndex(i, 2), 0), vertices_update_(FaceIndex(i, 2), 1), vertices_update_(FaceIndex(i, 2), 2);
 
-		BC << C - B;
-		BA << A - B;
+			BC << C - B;
+			BA << A - B;
 
-		Vector3f nom(BC.cross(BA));
+			Vector3f nom(BC.cross(BA));
 
-		nom.normalize();
-		Face_normal.push_back(nom);
+			nom.normalize();
 
-		Vertices_normal(FaceIndex(i, 0), 0) += nom(0);
-		Vertices_normal(FaceIndex(i, 1), 0) += nom(0);
-		Vertices_normal(FaceIndex(i, 2), 0) += nom(0);
+			Face_normal[i] = nom;
 
-		Vertices_normal(FaceIndex(i, 0), 1) += nom(1);
-		Vertices_normal(FaceIndex(i, 1), 1) += nom(1);
-		Vertices_normal(FaceIndex(i, 2), 1) += nom(1);
+			Vertices_normal(FaceIndex(i, 0), 0) += nom(0);
+			Vertices_normal(FaceIndex(i, 1), 0) += nom(0);
+			Vertices_normal(FaceIndex(i, 2), 0) += nom(0);
 
-		Vertices_normal(FaceIndex(i, 0), 2) += nom(2);
-		Vertices_normal(FaceIndex(i, 1), 2) += nom(2);
-		Vertices_normal(FaceIndex(i, 2), 2) += nom(2);
+			Vertices_normal(FaceIndex(i, 0), 1) += nom(1);
+			Vertices_normal(FaceIndex(i, 1), 1) += nom(1);
+			Vertices_normal(FaceIndex(i, 2), 1) += nom(1);
 
+			Vertices_normal(FaceIndex(i, 0), 2) += nom(2);
+			Vertices_normal(FaceIndex(i, 1), 2) += nom(2);
+			Vertices_normal(FaceIndex(i, 2), 2) += nom(2);
+
+		}
 	}
+
 
 	for (int i = 0; i < Vertices_normal.rows(); ++i)
 	{

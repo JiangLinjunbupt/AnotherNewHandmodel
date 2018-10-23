@@ -143,6 +143,9 @@
       <SDLCheck>true</SDLCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <StringPooling>true</StringPooling>
+      <OpenMPSupport>false</OpenMPSupport>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
